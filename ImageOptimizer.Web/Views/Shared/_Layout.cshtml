@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html lang="es-mx">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - AliveIdea</title>
+    <link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+</head>
+<body>
+    <header>
+        <partial name="_NavBar" />
+    </header>
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-12">
+                @if (TempData["Success"] != null)
+                {
+
+                    <div class=" m-3 alert alert-success alert-dismissible fade show" role="alert">
+                        <strong>!Notificaciòn!</strong>  @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+                @if (TempData["Warning"] != null)
+                {
+
+                    <div class=" m-3 alert alert-warning alert-dismissible fade show" role="alert">
+                        <strong>!Notificaciòn!</strong>  @TempData["Warning"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+
+                    <div class=" m-3 alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>!Notificaciòn!</strong>  @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+                @if (TempData["Info"] != null)
+                {
+
+                    <div class=" m-3 alert alert-info alert-dismissible fade show" role="alert">
+                        <strong>!Notificaciòn!</strong> @TempData["Info"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+        <main role="main" class="pb-3 m-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2021 - ImageOptimizer
+        </div>
+    </footer>
+    <script src="~/lib/jquery/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
