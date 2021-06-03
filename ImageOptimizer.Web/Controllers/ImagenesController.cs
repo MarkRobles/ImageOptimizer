@@ -73,31 +73,47 @@ namespace ImageOptimizer.Web.Controllers
                             Height = image.Height;
                         }
                         //Validar tamaño de la imagen
-                        if (Width == 1024 && Height == 640)
+                        if (Width >= 1200 )
                         {
-
-
-                            using var image = SixLabors.ImageSharp.Image.Load(file.OpenReadStream());
-                            image.Mutate(x => x.Resize(256, 256));
-                           
-
                             FileName = Path.GetFileNameWithoutExtension(file.FileName);
-                          
-                            string FileExtension = Path.GetExtension(file.FileName);  
-                            //Guardar version de imagen con distinto tamaño
-                            image.Save(string.Concat(FileName, "256x256", FileExtension));
-                            FileName = DateTime.Now.ToString("yyyyMMddHHmmss") + "-" + FileName.Trim() + FileExtension;
+                            string FileExtension = Path.GetExtension(file.FileName);
+                            FileName = string.Concat(DateTime.Now.ToString("yyyyMMddHHmmss") , "-" + FileName.Trim() );
                             string UploadPath = String.Concat(_environment.WebRootPath, "\\", "images", "\\");
-                            RelativePath = String.Concat("images", "\\", "marcas", "\\", FileName);
-                            FullPath = Path.Combine(UploadPath, FileName);
-                            using (var stream = System.IO.File.Create(FullPath))
-                            {
-                                file.CopyTo(stream);
-                            }
+
+                            FullPath = Path.Combine(UploadPath, string.Concat(FileName, "576", FileExtension));
+                            using var image576 = SixLabors.ImageSharp.Image.Load(file.OpenReadStream());
+                            image576.Mutate(x => x.Resize(576, 576));
+                            image576.Save(FullPath);
+
+                            FullPath = Path.Combine(UploadPath, string.Concat(FileName, "768", FileExtension));
+                            using var image768 = SixLabors.ImageSharp.Image.Load(file.OpenReadStream());
+                            image768.Mutate(x => x.Resize(768, 768));
+                            image768.Save(FullPath);
+
+                            FullPath = Path.Combine(UploadPath, string.Concat(FileName, "992", FileExtension));
+                            using var image992 = SixLabors.ImageSharp.Image.Load(file.OpenReadStream());
+                            image992.Mutate(x => x.Resize(992, 992));
+                            image992.Save(FullPath);
+
+
+                            FullPath = Path.Combine(UploadPath, string.Concat(FileName, "1200", FileExtension));
+                            using var image1200 = SixLabors.ImageSharp.Image.Load(file.OpenReadStream());
+                            image1200.Mutate(x => x.Resize(1200, 1200));
+                            image1200.Save(FullPath);
+
+
+                            //FileName = DateTime.Now.ToString("yyyyMMddHHmmss") + "-" + FileName.Trim() ;
+                           
+     //RelativePath = String.Concat("images", "\\", "marcas", "\\", FileName);
+                            //FullPath = Path.Combine(UploadPath,string.Concat( FileName , FileExtension));
+                            //using (var stream = System.IO.File.Create(FullPath))
+                            //{
+                            //    file.CopyTo(stream);
+                            //}
                         
                         }
                         else {
-                            resultado = "Solo se permite cargar imagenes de tamaño 1024 x 640";                    
+                            resultado = "Solo se permite cargar imagenes de ancho mayor o igual a 1200px";                    
                         }
                     }
                     else
