@@ -8,45 +8,122 @@ using System.Linq;
 using SixLabors.ImageSharp;
 using System.Threading.Tasks;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using ImageOptimizer.Web.ViewModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using ImageOptimizer.Data.Models;
 
 namespace ImageOptimizer.Web.Controllers
 {
     public class ImagenesController : Controller
     {
         private readonly IWebHostEnvironment _environment;
+        private readonly List<TipoImagen> tiposImagen;
 
         public ImagenesController(IWebHostEnvironment environment)
         {
             _environment = environment;
+            tiposImagen  = new List<TipoImagen> {
+            new TipoImagen{Id="JPEG",Descripcion="JPEG" },
+            new TipoImagen{Id="PNG",Descripcion="PNG" },
+            new TipoImagen{Id="WEBP",Descripcion="WEBP" },
+            new TipoImagen{Id="GIF",Descripcion="GIF" }
+            };
         }
         public IActionResult Index()
         {
+          
             return View();
         }
 
 
         public IActionResult Create()
         {
-            return View();
+           
+
+            var vm = new ImagenCreateVM();
+            vm.TiposImagen = tiposImagen.Select(c => new SelectListItem() { Text = $"{c.Descripcion} ", Value = c.Id.ToString() }).ToList();
+
+            return View(vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(IFormFile file)
+        public IActionResult Create(ImagenCreateVM vm,IFormFile file)
         {
             string resultado = string.Empty;
-            resultado = SaveFile(file);
+            resultado = SaveFile(file,vm.TipoImagenId);
 
-            if (resultado != string.Empty) {
+            if (resultado != string.Empty)
+            {
                 ModelState.AddModelError("", resultado);
             }
 
-  
-            return View();
+
+
+            vm.TiposImagen = tiposImagen.Select(c => new SelectListItem() { Text = $"{c.Descripcion} ", Value = c.Id.ToString() }).ToList();
+
+            return View(vm);
         }
 
 
-        public string SaveFile(IFormFile file)
+        public  void CreateJPEGImageBreakPoints(SixLabors.ImageSharp.Image image, string FileName,string TipoImagen)
+        {
+            string FullPath = string.Empty;
+            int Width = 0;
+            int Height = 0;// SixLabors.ImageSharp- Esta libreria define la altura correspondiente para mantener el aspec ratio si pones 0 en  Height o Width
+            try
+            {
+
+                FileName = Path.GetFileNameWithoutExtension(FileName);
+                string FileExtension = Path.GetExtension(FileName);
+
+                FileExtension = TipoImagen;
+                FileName = string.Concat(DateTime.Now.ToString("yyyyMMddHHmmss"), "-" + FileName.Trim());
+                string UploadPath = String.Concat(_environment.WebRootPath, "\\", "images", "\\");
+
+                Width = image.Width / 2;//No entiendo porque lo dividen entre 2 pero asi esta en la documentacion de la libreria jeje
+
+
+               
+
+
+                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "576", FileExtension));
+                using var image576 = image;
+                image576.Mutate(x => x.Resize(576, Height));
+                // image576.ToBase64String() esto seguro me servira cuando lo integre a otro proyecto 
+                image576.Save(FullPath);//En la documentacion de la libreria se guardan con quality 75 por default
+
+                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "768", FileExtension));
+                using var image768 = image;
+                image768.Mutate(x => x.Resize(768, Height));
+                image768.Save(FullPath);
+
+                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "992", FileExtension));
+                using var image992 = image;
+                image992.Mutate(x => x.Resize(992, Height));
+                image992.Save(FullPath);
+
+
+                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "1200", FileExtension));
+                using var image1200 = image;
+                image1200.Mutate(x => x.Resize(1200, Height));
+                image1200.Save(FullPath);
+
+            
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            
+
+  
+
+        }
+
+            public string SaveFile(IFormFile file,string TipoImagen)
         {
             string FullPath = string.Empty;
             string RelativePath = string.Empty;
@@ -54,78 +131,84 @@ namespace ImageOptimizer.Web.Controllers
             string resultado = string.Empty;
             int Width = 0;
             int Height = 0;
+            SixLabors.ImageSharp.Image imageSix;
 
             try
             {
-            
+
                 //Subieron imagen 
                 if (file != null)
                 {
 
-      //Validar tipo de la imagen
-                    if (file.ContentType.ToLower() == "image/jpeg" ||
-                file.ContentType.ToLower() == "image/jpg" )
+                    FileName = Path.GetFileNameWithoutExtension(file.FileName);
+                    string FileExtension = Path.GetExtension(file.FileName);
+
+                    FileExtension = string.Concat(".", TipoImagen);
+                    FileName = string.Concat(DateTime.Now.ToString("yyyyMMddHHmmss"), "-" + FileName.Trim());
+                    string UploadPath = String.Concat(_environment.WebRootPath, "\\", "images", "\\");
+                    FullPath = Path.Combine(UploadPath, string.Concat(FileName, FileExtension));
+
+
+                    if (TipoImagen.ToLower().Contains("webp"))
                     {
-                        using (SixLabors.ImageSharp.Image image = SixLabors.ImageSharp.Image.Load(file.OpenReadStream()))
-                        {
-                            Width = image.Width;//No entiendo porque lo dividen entre 2 pero asi esta en la documentacion de la libreria jeje
-                            Height = 0;// SixLabors.ImageSharp- Esta libreria define la altura correspondiente para mantener el aspec ratio si pones 0 en  Height o Width
-                            //https://docs.sixlabors.com/articles/imagesharp/resize.html
-
-                            //Validar tamaño de la imagen
-                            if (Width >= 1200)
-                            {
-
-                                Width = image.Width / 2;//No entiendo porque lo dividen entre 2 pero asi esta en la documentacion de la libreria jeje
-
-                                FileName = Path.GetFileNameWithoutExtension(file.FileName);
-                                string FileExtension = Path.GetExtension(file.FileName);
-                                FileName = string.Concat(DateTime.Now.ToString("yyyyMMddHHmmss"), "-" + FileName.Trim());
-                                string UploadPath = String.Concat(_environment.WebRootPath, "\\", "images", "\\");
-
-                                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "576", FileExtension));
-                                using var image576 = SixLabors.ImageSharp.Image.Load(file.OpenReadStream());
-                                image576.Mutate(x => x.Resize(576, Height));
-                                image576.Save(FullPath);
-
-                                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "768", FileExtension));
-                                using var image768 = SixLabors.ImageSharp.Image.Load(file.OpenReadStream());
-                                image768.Mutate(x => x.Resize(768, Height));
-                                image768.Save(FullPath);
-
-                                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "992", FileExtension));
-                                using var image992 = SixLabors.ImageSharp.Image.Load(file.OpenReadStream());
-                                image992.Mutate(x => x.Resize(992, Height));
-                                image992.Save(FullPath);
-
-
-                                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "1200", FileExtension));
-                                using var image1200 = SixLabors.ImageSharp.Image.Load(file.OpenReadStream());
-                                image1200.Mutate(x => x.Resize(1200, Height));
-                                image1200.Save(FullPath);
-
-
-                                //FileName = DateTime.Now.ToString("yyyyMMddHHmmss") + "-" + FileName.Trim() ;
-
-                                //RelativePath = String.Concat("images", "\\", "marcas", "\\", FileName);
-                                //FullPath = Path.Combine(UploadPath,string.Concat( FileName , FileExtension));
-                                //using (var stream = System.IO.File.Create(FullPath))
-                                //{
-                                //    file.CopyTo(stream);
-                                //}
-
-                            }
-                            else
-                            {
-                                resultado = "Solo se permite cargar imagenes de ancho mayor o igual a 1200px";
-                            }
-                        }
-                       
+                        // load the WEBP file in an instance of Image
+                        var image = Aspose.Imaging.Image.Load(file.OpenReadStream());
+                        // create an instance of JpegOptions
+                        var options = new Aspose.Imaging.ImageOptions.WebPOptions();
+                        FullPath = Path.Combine(UploadPath, string.Concat(FileName, FileExtension));
+                        // save WEBP as a JPEG
+                        image.Save(FullPath, options);
+       
+                        return resultado;
                     }
-                    else
+
+                    if (file.ContentType.ToLower().Contains("webp") )
                     {
-                         resultado = "Solo se permite cargar imagenes tipo JPG, JPEG";
+                        // load the WEBP file in an instance of Image
+                        var image = Aspose.Imaging.Image.Load(file.OpenReadStream());
+                        // create an instance of JpegOptions
+                        var options = new Aspose.Imaging.ImageOptions.JpegOptions();
+                        FullPath = Path.Combine(UploadPath, string.Concat(FileName, FileExtension));
+                        // save WEBP as a JPEG
+                        image.Save(FullPath, options);
+                         imageSix = SixLabors.ImageSharp.Image.Load(FullPath);
                     }
+                    else {
+                        imageSix = SixLabors.ImageSharp.Image.Load(file.OpenReadStream() );
+                    }
+
+                   
+                    CreateJPEGImageBreakPoints(imageSix, file.FileName, FileExtension);
+
+                    //Validar tipo de la imagen
+                    //    if (file.ContentType.ToLower() == "image/jpeg" ||
+                    //file.ContentType.ToLower() == "image/jpg")
+                    //    {
+                 //   using (SixLabors.ImageSharp.Image image = SixLabors.ImageSharp.Image.Load(file.OpenReadStream()))
+                      //  {
+                         //   Width = image.Width;
+
+                                       //https://docs.sixlabors.com/articles/imagesharp/resize.html
+
+                        //Validar tamaño de la imagen
+                        //if (Width >= 1200)
+                        //{
+
+
+
+
+                            //}
+                            //else
+                            //{
+                            //    resultado = "Solo se permite cargar imagenes de ancho mayor o igual a 1200px";
+                            //}
+                      //  }
+
+                    //}
+                    //else
+                    //{
+                    //    resultado = "Solo se permite cargar imagenes tipo JPG, JPEG";
+                    //}
                 }
             }
             catch (Exception ex)

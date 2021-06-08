@@ -1,4 +1,4 @@
-﻿
+﻿@model ImageOptimizer.Web.ViewModels.ImagenCreateVM
 
 @{
     ViewData["Title"] = "Optimizador de Imagenes";
@@ -9,10 +9,17 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create" method="post" role="form" enctype="multipart/form-data">
+        <form asp-action="Create" method="post" role="form" enctype="multipart/form-data" >
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <partial name="./_CargarImagen" />
-       
+
+            <div class="form-group">
+                <label asp-for="TiposImagen" class="control-label"></label>
+                <select asp-for="TipoImagenId" class="form-control" asp-items="@Model.TiposImagen">
+                    <option disabled selected value="">--- SELECCIONAR ---</option>
+                </select>
+            </div>
+            <br />
             <div class="form-group">
                 <input type="submit" value="Guardar" class="btn btn-primary" />
             </div>
