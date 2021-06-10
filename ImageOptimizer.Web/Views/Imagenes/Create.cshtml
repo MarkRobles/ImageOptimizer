@@ -9,7 +9,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create" method="post" role="form" enctype="multipart/form-data" >
+        <form asp-action="Create" method="post" role="form" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <partial name="./_CargarImagen" />
 
@@ -19,12 +19,43 @@
                     <option disabled selected value="">--- SELECCIONAR ---</option>
                 </select>
             </div>
+
             <br />
             <div class="form-group">
                 <input type="submit" value="Guardar" class="btn btn-primary" />
             </div>
         </form>
     </div>
+    <div class="col-md-4">
+        <div id="preview"></div>
+    </div>
+
+</div>
+
+<img src="" />
+<div class="row">
+    <div class="col-md-12">
+        @*Approach 1*@
+        @*<picture>
+            <source media="(max-width:360px)" srcset="~/images/20210607203554-panda_360px.JPEG">
+            <source media="(max-width:576px)" srcset="~/images/20210607203554-panda_576px.JPEG">
+            <source media="(max-width:768px)" srcset="~/images/20210607203554-panda_768px.JPEG">
+            <source media="(max-width:992px)" srcset="~/images/20210607203554-panda_992px.JPEG">
+            <source media="(max-width:1200px)" srcset="~/images/20210607203554-panda_1200px.JPEG">
+            <img src="https://via.placeholder.com/1400" alt="Flowers" style="width:auto;">
+        </picture>*@
+
+        @*src is in case the image in srcset does work*@
+        @*sizes is to specify we want it to show at 100% og the viewpoert*@
+        <img src="/images/20210607203554-panda_1200px.JPEG" alt="" sizes="100vw"
+             srcset="/images/20210607203554-panda_360px.JPEG 360w,
+                     /images/20210607203554-panda_576px.JPEG 576w,
+                     /images/20210607203554-panda_768px.JPEG 768w,
+                     /images/20210607203554-panda_992px.JPEG 992w,
+                     /images/20210607203554-panda_1200px.JPEG 1200w" />
+
+
+    </div>           
 </div>
 
 <div>

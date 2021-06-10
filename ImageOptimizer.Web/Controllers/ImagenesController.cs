@@ -24,10 +24,10 @@ namespace ImageOptimizer.Web.Controllers
         {
             _environment = environment;
             tiposImagen  = new List<TipoImagen> {
-            new TipoImagen{Id="JPEG",Descripcion="JPEG" },
-            new TipoImagen{Id="PNG",Descripcion="PNG" },
-            new TipoImagen{Id="WEBP",Descripcion="WEBP" },
-            new TipoImagen{Id="GIF",Descripcion="GIF" }
+            new TipoImagen{Id="JPEG",Descripcion="JPEG",Predeterminado=true },
+            new TipoImagen{Id="PNG",Descripcion="PNG",Predeterminado=false },
+            new TipoImagen{Id="WEBP",Descripcion="WEBP",Predeterminado=false },
+            new TipoImagen{Id="GIF",Descripcion="GIF",Predeterminado=false }
             };
         }
         public IActionResult Index()
@@ -42,7 +42,7 @@ namespace ImageOptimizer.Web.Controllers
            
 
             var vm = new ImagenCreateVM();
-            vm.TiposImagen = tiposImagen.Select(c => new SelectListItem() { Text = $"{c.Descripcion} ", Value = c.Id.ToString() }).ToList();
+            vm.TiposImagen = tiposImagen.Select(c => new SelectListItem() { Text = $"{c.Descripcion} ", Value = c.Id.ToString(),Selected=c.Predeterminado }).ToList();
 
             return View(vm);
         }
@@ -67,7 +67,7 @@ namespace ImageOptimizer.Web.Controllers
         }
 
 
-        public  void CreateJPEGImageBreakPoints(SixLabors.ImageSharp.Image image, string FileName,string TipoImagen)
+        public  void CreateImageBreakPoints(SixLabors.ImageSharp.Image image, string FileName,string TipoImagen)
         {
             string FullPath = string.Empty;
             int Width = 0;
@@ -84,28 +84,31 @@ namespace ImageOptimizer.Web.Controllers
 
                 Width = image.Width / 2;//No entiendo porque lo dividen entre 2 pero asi esta en la documentacion de la libreria jeje
 
+                FullPath = Path.Combine(UploadPath, string.Concat(FileName,"_", "360px", FileExtension));
+                using var image360 = image;
+                image360.Mutate(x => x.Resize(360, Height));
+                // image360.ToBase64String() esto seguro me servira cuando lo integre a otro proyecto 
+                image360.Save(FullPath);//En la documentacion de la libreria se guardan con quality 75 por default
 
-               
 
-
-                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "576", FileExtension));
+                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "_", "576px", FileExtension));
                 using var image576 = image;
                 image576.Mutate(x => x.Resize(576, Height));
                 // image576.ToBase64String() esto seguro me servira cuando lo integre a otro proyecto 
                 image576.Save(FullPath);//En la documentacion de la libreria se guardan con quality 75 por default
 
-                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "768", FileExtension));
+                FullPath = Path.Combine(UploadPath, string.Concat(FileName,"_", "768px", FileExtension));
                 using var image768 = image;
                 image768.Mutate(x => x.Resize(768, Height));
                 image768.Save(FullPath);
 
-                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "992", FileExtension));
+                FullPath = Path.Combine(UploadPath, string.Concat(FileName,"_", "992px", FileExtension));
                 using var image992 = image;
                 image992.Mutate(x => x.Resize(992, Height));
                 image992.Save(FullPath);
 
 
-                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "1200", FileExtension));
+                FullPath = Path.Combine(UploadPath, string.Concat(FileName,"_", "1200px", FileExtension));
                 using var image1200 = image;
                 image1200.Mutate(x => x.Resize(1200, Height));
                 image1200.Save(FullPath);
@@ -178,7 +181,7 @@ namespace ImageOptimizer.Web.Controllers
                     }
 
                    
-                    CreateJPEGImageBreakPoints(imageSix, file.FileName, FileExtension);
+                    CreateImageBreakPoints(imageSix, file.FileName, FileExtension);
 
                     //Validar tipo de la imagen
                     //    if (file.ContentType.ToLower() == "image/jpeg" ||
