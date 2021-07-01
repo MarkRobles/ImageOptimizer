@@ -12,6 +12,7 @@ using SixLabors.ImageSharp.Formats.Jpeg;
 using ImageOptimizer.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using ImageOptimizer.Data.Models;
+using System.Diagnostics;
 
 namespace ImageOptimizer.Web.Controllers
 {
@@ -67,11 +68,15 @@ namespace ImageOptimizer.Web.Controllers
         }
 
 
-        public  void CreateImageBreakPoints(SixLabors.ImageSharp.Image image, string FileName,string TipoImagen)
+        public  string CreateImageBreakPoints(SixLabors.ImageSharp.Image image, string FileName,string TipoImagen)
         {
             string FullPath = string.Empty;
+            string resultado = string.Empty;
+            long totalMS = 0;
             int Width = 0;
             int Height = 0;// SixLabors.ImageSharp- Esta libreria define la altura correspondiente para mantener el aspec ratio si pones 0 en  Height o Width
+            var watch = new Stopwatch();
+
             try
             {
 
@@ -84,45 +89,61 @@ namespace ImageOptimizer.Web.Controllers
 
                 Width = image.Width / 2;//No entiendo porque lo dividen entre 2 pero asi esta en la documentacion de la libreria jeje
 
-                FullPath = Path.Combine(UploadPath, string.Concat(FileName,"_", "360px", FileExtension));
+
+                watch.Start();
+                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "_", "360px", FileExtension));
                 using var image360 = image;
                 image360.Mutate(x => x.Resize(360, Height));
                 // image360.ToBase64String() esto seguro me servira cuando lo integre a otro proyecto 
                 image360.Save(FullPath);//En la documentacion de la libreria se guardan con quality 75 por default
-
-
+                resultado += string.Concat(resultado, "Imagen de 360px guardada en:", watch.ElapsedMilliseconds.ToString(),"ms", Environment.NewLine);
+                watch.Stop();
+                totalMS += watch.ElapsedMilliseconds;
+                watch.Start();
                 FullPath = Path.Combine(UploadPath, string.Concat(FileName, "_", "576px", FileExtension));
                 using var image576 = image;
                 image576.Mutate(x => x.Resize(576, Height));
                 // image576.ToBase64String() esto seguro me servira cuando lo integre a otro proyecto 
                 image576.Save(FullPath);//En la documentacion de la libreria se guardan con quality 75 por default
-
-                FullPath = Path.Combine(UploadPath, string.Concat(FileName,"_", "768px", FileExtension));
+                resultado += string.Concat( "Imagen de 576 guardada en:", watch.ElapsedMilliseconds.ToString(), "ms", Environment.NewLine);
+                watch.Stop();
+                totalMS += watch.ElapsedMilliseconds;
+                watch.Start();
+                FullPath = Path.Combine(UploadPath, string.Concat(FileName, "_", "768px", FileExtension));
                 using var image768 = image;
                 image768.Mutate(x => x.Resize(768, Height));
                 image768.Save(FullPath);
-
+                resultado += string.Concat( "Imagen de 768 guardada en:", watch.ElapsedMilliseconds.ToString(), "ms", Environment.NewLine);
+                watch.Stop();
+                totalMS += watch.ElapsedMilliseconds;
+                watch.Start();
                 FullPath = Path.Combine(UploadPath, string.Concat(FileName,"_", "992px", FileExtension));
                 using var image992 = image;
                 image992.Mutate(x => x.Resize(992, Height));
                 image992.Save(FullPath);
-
-
+                resultado += string.Concat( "Imagen de 992 guardada en:", watch.ElapsedMilliseconds.ToString(), "ms", Environment.NewLine);
+                watch.Stop();
+                totalMS += watch.ElapsedMilliseconds;
+                watch.Start();
                 FullPath = Path.Combine(UploadPath, string.Concat(FileName,"_", "1200px", FileExtension));
                 using var image1200 = image;
                 image1200.Mutate(x => x.Resize(1200, Height));
                 image1200.Save(FullPath);
+                resultado += string.Concat( "Imagen de 1200 guardada en:", watch.ElapsedMilliseconds.ToString(), "ms", Environment.NewLine);
+                watch.Stop();
+                totalMS += watch.ElapsedMilliseconds;
 
-            
+                resultado += string.Concat("Total ms:",  totalMS.ToString());
+
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                resultado = ex.Message;
+              
             }
-            
 
-  
+
+            return resultado;
 
         }
 
@@ -180,8 +201,8 @@ namespace ImageOptimizer.Web.Controllers
                         imageSix = SixLabors.ImageSharp.Image.Load(file.OpenReadStream() );
                     }
 
-                   
-                    CreateImageBreakPoints(imageSix, file.FileName, FileExtension);
+
+                    resultado = CreateImageBreakPoints(imageSix, file.FileName, FileExtension);
 
                     //Validar tipo de la imagen
                     //    if (file.ContentType.ToLower() == "image/jpeg" ||
